@@ -1581,9 +1581,9 @@ void CombinerProgramBuilderCommon::_writeBlender2(std::stringstream& ssShader)co
 		if (CombinerProgramBuilder::s_textureConvert.useTextureFiltering()) {
 			ssShader << "  // WebGL fallback: when framebuffer fetch is absent, LAST_FRAG_COLOR is dummy vec4(0.0).\n"
 			         << "  // In 2-cycle blend mode with CLR_MEM (muxm), blending against vec4(0.0) yields black.\n"
-			         << "  // Discarding near-black fragments on semi-transparent filtered sprites (clampedColor.a < 0.8) preserves the background (e.g. Castlevania 64 menu lens),\n"
-			         << "  // while preserving opaque 2D/3D logos, borders, and text (clampedColor.a >= 0.8) so they are not made hollow.\n"
-			         << "  if (uTextureFilterMode != 0 && uBlendMux2[2] == 1 && uBlendMux2[3] == 0 && clampedColor.a < 0.8 && dot(fragColor.rgb, vec3(1.0)) < 0.05) {\n"
+			         << "  // Discarding near-black fragments on missing CLR_MEM fragments (where memory weight muxb > 0.3) preserves the background (e.g. Castlevania 64 menu lens),\n"
+			         << "  // while preserving opaque 2D/3D logos, borders, and text (where memory weight muxb == 0.0) so they are not made hollow.\n"
+			         << "  if (uTextureFilterMode != 0 && uBlendMux2[2] == 1 && uBlendMux2[3] == 0 && muxb > 0.3 && dot(fragColor.rgb, vec3(1.0)) < 0.05) {\n"
 			         << "    discard;\n"
 			         << "  }\n";
 		}
