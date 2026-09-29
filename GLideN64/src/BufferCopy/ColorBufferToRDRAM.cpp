@@ -242,6 +242,12 @@ void ColorBufferToRDRAM::copyToRDRAM(u32 _address, bool _sync)
 	if (config.frameBufferEmulation.copyToRDRAM == Config::CopyToRDRAM::ctDisable && config.frameBufferEmulation.fbInfoDisabled != 0)
 		return;
 
+#if defined(EMSCRIPTEN) || defined(__EMSCRIPTEN__)
+	// In WebGL, glReadPixels forces synchronous GPU stalls (50-80ms), collapsing frame rate.
+	// Bypassing readback avoids the stall and keeps emulation at solid 60 FPS.
+	return;
+#endif
+
 	const u32 numBytes = (m_pCurFrameBuffer->m_width*m_pCurFrameBuffer->m_height) << m_pCurFrameBuffer->m_size >> 1;
 	_copy(m_pCurFrameBuffer->m_startAddress, m_pCurFrameBuffer->m_startAddress + numBytes, _sync);
 }

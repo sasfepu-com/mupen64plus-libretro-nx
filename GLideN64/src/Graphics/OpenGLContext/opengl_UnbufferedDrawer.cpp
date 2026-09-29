@@ -35,11 +35,11 @@ UnbufferedDrawer::~UnbufferedDrawer()
 
 bool UnbufferedDrawer::_updateAttribPointer(u32 _index, const void * _ptr)
 {
-	if (m_attribsData[_index] == _ptr)
-		return false;
-
-	m_attribsData[_index] = _ptr;
-	return true;
+	if (m_attribsData[_index] != _ptr) {
+		m_attribsData[_index] = _ptr;
+		return true;
+	}
+	return false;
 }
 
 void UnbufferedDrawer::drawTriangles(const graphics::Context::DrawTriangleParameters & _params)
@@ -91,6 +91,14 @@ void UnbufferedDrawer::drawTriangles(const graphics::Context::DrawTriangleParame
 	if (m_useCoverage)
 		m_cachedAttribArray->enableVertexAttribArray(rectAttrib::barycoords, false);
 
+#if defined(EMSCRIPTEN) || defined(__EMSCRIPTEN__)
+	if (_params.elements == nullptr) {
+		glDrawArrays(GLenum(_params.mode), 0, _params.verticesCount);
+		return;
+	}
+	glDrawElements(GLenum(_params.mode), _params.elementsCount, GL_UNSIGNED_SHORT, _params.elements);
+	return;
+#else
 	if (config.frameBufferEmulation.N64DepthCompare != Config::dcCompatible) {
 		if (_params.elements == nullptr) {
 			glDrawArrays(GLenum(_params.mode), 0, _params.verticesCount);
@@ -100,6 +108,7 @@ void UnbufferedDrawer::drawTriangles(const graphics::Context::DrawTriangleParame
 		glDrawElements(GLenum(_params.mode), _params.elementsCount, GL_UNSIGNED_SHORT, _params.elements);
 		return;
 	}
+#endif
 
 	// Draw polygons one by one
 
@@ -119,7 +128,7 @@ void UnbufferedDrawer::drawTriangles(const graphics::Context::DrawTriangleParame
 
 	for (GLint i = 0; i < GLint(_params.elementsCount); i += 3) {
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-		glDrawElements(GLenum(_params.mode), 3, GL_UNSIGNED_BYTE, (u8*)_params.elements + i);
+		glDrawElements(GLenum(_params.mode), 3, GL_UNSIGNED_SHORT, (const u16*)_params.elements + i);
 	}
 }
 

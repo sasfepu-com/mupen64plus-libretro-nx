@@ -387,10 +387,14 @@ graphics::ColorBufferReader * ContextImpl::createColorBufferReader(CachedTexture
 	if (m_glInfo.bufferStorage && m_glInfo.renderer != Renderer::Intel)
 		return new ColorBufferReaderWithBufferStorage(_pTexture, m_cachedFunctions->getCachedBindBuffer());
 
+#if defined(EMSCRIPTEN) || defined(__EMSCRIPTEN__)
+	return new ColorBufferReaderWithReadPixels(_pTexture);
+#else
 	if (!m_glInfo.isGLES2)
 		return new ColorBufferReaderWithPixelBuffer(_pTexture, m_cachedFunctions->getCachedBindBuffer());
 
 	return new ColorBufferReaderWithReadPixels(_pTexture);
+#endif
 }
 
 /*---------------Shaders-------------*/
