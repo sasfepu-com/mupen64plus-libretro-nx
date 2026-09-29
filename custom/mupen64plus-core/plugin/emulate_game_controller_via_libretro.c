@@ -305,6 +305,10 @@ static void inputGetKeys_reuse(int16_t analogX, int16_t analogY, int Control, BU
    {
       Keys->X_AXIS = 0;
       Keys->Y_AXIS = 0;
+      if (Keys->L_DPAD) Keys->X_AXIS -= 80;
+      if (Keys->R_DPAD) Keys->X_AXIS += 80;
+      if (Keys->U_DPAD) Keys->Y_AXIS += 80;
+      if (Keys->D_DPAD) Keys->Y_AXIS -= 80;
    }
 }
 
